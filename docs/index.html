@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Payment Compass — Navigate From Payment to Price</title>
+<meta name="description" content="Start with the monthly payment you can actually live with. The Compass charts the maximum home price that payment buys — taxes, insurance, PMI and all.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0A0E18">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<style>
+  :root{
+    --bg:#0A0E18; --surface:#111828; --panel:#0D1322;
+    --text:#EDEFF2; --muted:#A7AEC0; --faint:#6E7690;
+    --gold:#C8A951; --gold-bright:#E4C87E; --chart:#4A5A7A; --line:#232E47;
+    --good:#7FB069; --warn:#D9A441; --bad:#C0564B;
+    --serif:Georgia,'Times New Roman',Times,serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+       font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+       background-image:
+         repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(74,90,122,.10) 80px),
+         repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(74,90,122,.10) 80px);}
+  .wrap{max-width:780px;margin:0 auto;padding:0 18px 80px}
+  header{padding:60px 0 8px;text-align:center}
+  .eyebrow{font-size:11px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+  .rose{font-size:26px;color:var(--gold);line-height:1}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(38px,8vw,60px);margin:10px 0 12px;letter-spacing:.5px}
+  .lede{color:var(--muted);max-width:580px;margin:0 auto;font-size:17px}
+  .lede strong{color:var(--text);font-weight:600}
+  .hairline{height:1px;background:linear-gradient(90deg,transparent,var(--chart),var(--gold),var(--chart),transparent);margin:28px 0}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:2px;
+        padding:24px 22px;margin:0 0 22px;position:relative}
+  .card h2{font-family:var(--serif);font-weight:400;font-size:25px;margin:0 0 4px}
+  .card h2 .rose{font-size:17px;vertical-align:2px;margin-right:8px}
+  .card .sub{color:var(--faint);font-size:13.5px;margin:0 0 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:560px){.grid2,.grid3{grid-template-columns:1fr}}
+  label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 0 6px}
+  input[type=number],input[type=text],select{width:100%;background:var(--panel);border:1px solid var(--line);
+        color:var(--text);border-radius:2px;padding:12px 14px;font-size:17px;font-family:var(--sans)}
+  input:focus,select:focus{outline:none;border-color:var(--gold)}
+  .hint{font-size:12px;color:var(--faint);margin-top:5px}
+  input[type=range]{width:100%;accent-color:var(--gold);margin:6px 0 2px}
+  .hero{text-align:center;padding:34px 22px}
+  .hero .cap{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--chart);
+             color:var(--muted)}
+  .hero .price{font-family:var(--serif);font-size:clamp(46px,10vw,74px);color:var(--gold);
+               line-height:1.05;margin:8px 0 4px}
+  .hero .loanline{color:var(--muted);font-size:15px}
+  .hero .loanline b{color:var(--text)}
+  .verdict{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--gold-bright);
+           max-width:560px;margin:16px auto 0}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+  @media(max-width:560px){.stats{grid-template-columns:1fr}}
+  .stat{border:1px solid var(--line);background:var(--panel);padding:14px 10px;border-radius:2px}
+  .stat .n{font-family:var(--serif);font-size:24px;color:var(--gold)}
+  .stat .l{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin-top:2px}
+  .bar{display:flex;height:30px;border:1px solid var(--line);border-radius:2px;overflow:hidden;margin:6px 0 12px}
+  .bar div{height:100%}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:14px}
+  @media(max-width:560px){.legend{grid-template-columns:1fr}}
+  .legend .row{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:4px 0}
+  .sw{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:1px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;font-variant-numeric:tabular-nums}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  th{color:var(--gold);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+  th:first-child,td:first-child{text-align:left}
+  td.hl{background:rgba(200,169,81,.14);color:var(--gold-bright);font-weight:700}
+  th.hl{color:var(--gold-bright)}
+  .bearings{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.bearings{grid-template-columns:1fr}}
+  .bearing{border:1px solid var(--line);background:var(--panel);border-radius:2px;padding:16px}
+  .bearing .t{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  .bearing .p{font-family:var(--serif);font-size:27px;color:var(--gold);margin:4px 0 2px}
+  .bearing .d{font-size:14px}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  button{background:var(--gold);color:#0A0E18;border:none;border-radius:2px;padding:13px 20px;
+         font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);letter-spacing:.3px}
+  button:hover{background:var(--gold-bright)}
+  button.ghost{background:transparent;color:var(--gold);border:1px solid var(--chart)}
+  button.ghost:hover{border-color:var(--gold);color:var(--gold-bright)}
+  button.small{padding:8px 13px;font-size:13px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .saved{border:1px solid var(--line);background:var(--panel);border-radius:2px;padding:13px 15px;
+         display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .saved .nm{font-family:var(--serif);font-size:17px}
+  .saved .dt{color:var(--faint);font-size:13px}
+  .empty{color:var(--faint);font-size:14.5px}
+  .note{font-size:13.5px;color:var(--faint)}
+  .ratio-wrap{margin-top:8px}
+  .ratio-bar{height:12px;background:var(--panel);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .ratio-fill{height:100%;background:var(--gold)}
+  footer{text-align:center;color:var(--faint);font-size:13px;margin-top:34px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;
+         background:var(--gold);color:#0A0E18;font-weight:700;padding:11px 20px;border-radius:2px;
+         transition:.25s;pointer-events:none;z-index:9}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="rose">✦</div>
+  <div class="eyebrow" style="margin-top:12px">A Navigator for Homebuyers</div>
+  <h1>The Payment Compass</h1>
+  <p class="lede">Everybody shops by sticker price. Smart buyers shop by <strong>payment</strong>.
+  Tell the Compass the monthly number you can actually live with, and it charts the maximum
+  home price that payment buys — <strong>taxes, insurance, PMI and HOA included</strong>, not hidden.</p>
+</header>
+
+<div class="hairline"></div>
+
+<section class="card">
+  <h2><span class="rose">✦</span>Set Your Course</h2>
+  <p class="sub">The payment is the destination. Everything else is weather.</p>
+  <div class="grid2">
+    <div>
+      <label for="budget">Monthly payment you can live with ($)</label>
+      <input type="number" id="budget" value="2600" min="300" step="25">
+      <div class="hint">All-in: principal, interest, taxes, insurance, PMI, HOA.</div>
+    </div>
+    <div>
+      <label for="income">Gross household income / yr ($) — optional</label>
+      <input type="number" id="income" value="110000" min="0" step="1000">
+      <div class="hint">Used only for the 28% housing-ratio check below.</div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div>
+      <label for="rate">Interest rate (%)</label>
+      <input type="number" id="rate" value="6.75" min="0" max="20" step="0.125">
+    </div>
+    <div>
+      <label for="term">Loan term (years)</label>
+      <select id="term">
+        <option value="30" selected>30 years</option>
+        <option value="20">20 years</option>
+        <option value="15">15 years</option>
+      </select>
+    </div>
+    <div>
+      <label for="down">Down payment (%)</label>
+      <input type="number" id="down" value="10" min="0" max="60" step="0.5">
+      <div class="hint">Under 20% triggers PMI below.</div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div>
+      <label for="taxpct">Property tax rate (% of price / yr)</label>
+      <input type="number" id="taxpct" value="1.1" min="0" max="5" step="0.05">
+      <div class="hint">NJ runs ~2.4%. Texas ~1.6%. Hawaii ~0.3%.</div>
+    </div>
+    <div>
+      <label for="ins">Home insurance ($ / mo)</label>
+      <input type="number" id="ins" value="180" min="0" step="10">
+    </div>
+    <div>
+      <label for="hoa">HOA dues ($ / mo)</label>
+      <input type="number" id="hoa" value="0" min="0" step="10">
+      <div class="hint">Zero is the right answer when you can get it.</div>
+    </div>
+  </div>
+  <div style="margin-top:14px">
+    <label for="pmi">PMI rate when under 20% down (% of loan / yr): <span id="pmiVal">0.60%</span></label>
+    <input type="range" id="pmi" min="0.2" max="1.5" step="0.05" value="0.6">
+    <div class="hint">PMI is the toll for a small down payment. It falls off at 20% equity — the Compass removes it automatically at 20% down or more.</div>
+  </div>
+</section>
+
+<section class="card hero">
+  <div class="cap">✦ &nbsp;Your payment buys up to&nbsp; ✦</div>
+  <div class="price" id="maxPrice">$0</div>
+  <div class="loanline">Loan of <b id="loanAmt">$0</b> · <b id="downAmt">$0</b> down · payment lands at <b id="landed">$0/mo</b></div>
+  <p class="verdict" id="verdict"></p>
+  <div class="stats">
+    <div class="stat"><div class="n" id="per10k">$0</div><div class="l">P&amp;I per $10k borrowed / mo</div></div>
+    <div class="stat"><div class="n" id="cashNeed">$0</div><div class="l">Est. cash to close (down + ~2.5% costs)</div></div>
+    <div class="stat"><div class="n" id="ratioOut">—</div><div class="l">Of gross income (28% rule)</div></div>
+  </div>
+  <div class="ratio-wrap" id="ratioWrap">
+    <div class="ratio-bar"><div class="ratio-fill" id="ratioFill" style="width:0%"></div></div>
+    <p class="note" id="ratioNote" style="margin-top:8px"></p>
+  </div>
+</section>
+
+<section class="card">
+  <h2><span class="rose">✦</span>Anatomy of the Payment</h2>
+  <p class="sub">Where the monthly number actually goes at your maximum price. The part listing sites never show you.</p>
+  <div class="bar" id="anatomyBar"></div>
+  <div class="legend" id="anatomyLegend"></div>
+</section>
+
+<section class="card">
+  <h2><span class="rose">✦</span>The Chart — Price Across Rate &amp; Budget</h2>
+  <p class="sub">Maximum price for every combination near yours. Rows are monthly budgets, columns are interest rates. Your position is lit in gold. Read it like a map: one column left is what a half-point of patience — or a better lender — is worth.</p>
+  <div style="overflow-x:auto"><table id="chartTable"></table></div>
+</section>
+
+<section class="card">
+  <h2><span class="rose">✦</span>Four Bearings</h2>
+  <p class="sub">What changes your destination, and by how much. Small turns, big distances.</p>
+  <div class="bearings" id="bearings"></div>
+</section>
+
+<section class="card">
+  <h2><span class="rose">✦</span>The Ship's Log</h2>
+  <p class="sub">Save a course to compare neighborhoods, lenders, or down-payment plans. Stored on this device only.</p>
+  <div id="savedList"></div>
+  <div class="btnrow">
+    <button id="saveBtn">Save this course</button>
+    <button class="ghost" id="copyBtn">Copy summary</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2><span class="rose">✦</span>How the Compass Navigates</h2>
+  <p style="color:var(--muted);margin:0 0 12px">Most affordability tools ask what price you want and hand you a payment you can't afford.
+  This one runs the math backwards, the way a careful buyer actually decides: <b style="color:var(--text)">the payment is fixed, the price is the unknown.</b></p>
+  <p style="color:var(--muted);margin:0 0 12px">For any candidate price it builds the true monthly cost — principal &amp; interest on the loan,
+  property tax as a percentage of that price, insurance, HOA, and PMI whenever the down payment is under 20% — then binary-searches
+  the price ladder until the payment lands exactly on your budget. No estimates dressed up as answers.</p>
+  <p style="color:var(--muted);margin:0">Two rules of the sea: a rate is not a price (a half-point moves your max price more than most negotiations do),
+  and PMI is rent you pay the bank for the privilege of owning less of your own house. Chart accordingly.</p>
+</section>
+
+<footer>
+  <div class="rose" style="font-size:18px">✦</div>
+  <p>The Payment Compass · A daily finance &amp; real estate tool · Estimates only — confirm taxes, insurance and PMI with your lender before you offer.</p>
+</footer>
+
+</div>
+<div class="toast" id="toast">Saved</div>
+
+<script>
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var LS_KEY = "payment-compass-v1";
+
+function num(id, dflt){
+  var v = parseFloat($(id).value);
+  return isFinite(v) ? v : dflt;
+}
+function settings(){
+  return {
+    budget: Math.max(0, num("budget", 2600)),
+    income: Math.max(0, num("income", 0)),
+    rate: Math.min(25, Math.max(0, num("rate", 6.75))),
+    term: parseInt($("term").value, 10) || 30,
+    down: Math.min(90, Math.max(0, num("down", 10))),
+    taxpct: Math.max(0, num("taxpct", 1.1)),
+    ins: Math.max(0, num("ins", 180)),
+    hoa: Math.max(0, num("hoa", 0)),
+    pmi: Math.max(0, num("pmi", 0.6))
+  };
+}
+function piFactor(ratePct, years){
+  var r = ratePct / 100 / 12, n = years * 12;
+  if (r <= 0) return 1 / n;
+  var f = Math.pow(1 + r, n);
+  return r * f / (f - 1);
+}
+function breakdown(price, s){
+  var loan = price * (1 - s.down / 100);
+  var pi = loan * piFactor(s.rate, s.term);
+  var tax = price * (s.taxpct / 100) / 12;
+  var pmi = (s.down < 20 && loan > 0) ? loan * (s.pmi / 100) / 12 : 0;
+  var total = pi + tax + s.ins + s.hoa + pmi;
+  return { price: price, loan: loan, pi: pi, tax: tax, ins: s.ins, hoa: s.hoa, pmi: pmi, total: total };
+}
+function maxPrice(s){
+  if (s.budget <= 0) return 0;
+  var lo = 0, hi = 50000;
+  while (breakdown(hi, s).total < s.budget && hi < 40000000) hi *= 2;
+  for (var i = 0; i < 70; i++){
+    var mid = (lo + hi) / 2;
+    if (breakdown(mid, s).total < s.budget) lo = mid; else hi = mid;
+  }
+  return lo;
+}
+function money(v){
+  return "$" + Math.round(v).toLocaleString("en-US");
+}
+function moneyK(v){
+  if (v >= 1000000) return "$" + (v / 1000000).toFixed(2) + "M";
+  return "$" + Math.round(v / 1000) + "k";
+}
+function deltaHTML(d){
+  if (Math.abs(d) < 500) return '<span class="up">about the same</span>';
+  var cls = d > 0 ? "up" : "down";
+  var arrow = d > 0 ? "▲" : "▼";
+  return '<span class="' + cls + '">' + arrow + " " + money(Math.abs(d)) + "</span>";
+}
+
+var SEG_COLORS = { pi: "#C8A951", tax: "#4A5A7A", ins: "#7A5C8A", hoa: "#8A2E2E", pmi: "#C0564B" };
+var SEG_LABELS = { pi: "Principal & interest", tax: "Property tax", ins: "Insurance", hoa: "HOA dues", pmi: "PMI" };
+
+function render(){
+  var s = settings();
+  $("pmiVal").textContent = s.pmi.toFixed(2) + "%";
+  var price = maxPrice(s);
+  var b = breakdown(price, s);
+
+  $("maxPrice").textContent = money(price);
+  $("loanAmt").textContent = money(b.loan);
+  $("downAmt").textContent = money(price - b.loan);
+  $("landed").textContent = money(b.total) + "/mo";
+
+  var per10k = piFactor(s.rate, s.term) * 10000;
+  $("per10k").textContent = "$" + per10k.toFixed(2);
+  var cash = (price - b.loan) + price * 0.025;
+  $("cashNeed").textContent = money(cash);
+
+  // Verdict + income ratio
+  var verdict = "";
+  if (s.income > 0){
+    var ratio = s.budget / (s.income / 12) * 100;
+    $("ratioOut").textContent = ratio.toFixed(1) + "%";
+    $("ratioFill").style.width = Math.min(100, ratio / 45 * 100) + "%";
+    $("ratioFill").style.background = ratio <= 28 ? "var(--good)" : (ratio <= 36 ? "var(--warn)" : "var(--bad)");
+    if (ratio <= 28){
+      verdict = "Inside the old banker's 28% line. This payment leaves room to live, save, and sleep.";
+      $("ratioNote").textContent = "At " + ratio.toFixed(1) + "% of gross income, lenders call this comfortable — and for once they are right.";
+    } else if (ratio <= 36){
+      verdict = "Past the 28% comfort line, under the 36% caution line. Doable — if the rest of the budget is disciplined.";
+      $("ratioNote").textContent = "At " + ratio.toFixed(1) + "% of gross income, this is the stretch zone. One car payment gone wrong and it gets tight.";
+    } else {
+      verdict = "Beyond the 36% caution line. The Compass says turn back — a smaller price or a bigger down payment first.";
+      $("ratioNote").textContent = "At " + ratio.toFixed(1) + "% of gross income, this payment owns you, not the other way around.";
+    }
+  } else {
+    $("ratioOut").textContent = "—";
+    $("ratioFill").style.width = "0%";
+    $("ratioNote").textContent = "Add your gross income above to see the 28% housing-ratio check.";
+    verdict = s.down < 20
+      ? "A workable course — but note the PMI toll in the anatomy below. Every point of down payment is a raise you give yourself."
+      : "Twenty percent down: no PMI toll. This is the clean way to sail.";
+  }
+  if (s.hoa > 0 && s.hoa >= s.budget * 0.12){
+    verdict += " And that HOA line is heavy — dues that size are a second tax that never gets appealed.";
+  }
+  $("verdict").textContent = verdict;
+
+  // Anatomy
+  var keys = ["pi", "tax", "ins", "hoa", "pmi"];
+  var barHTML = "", legHTML = "";
+  keys.forEach(function(k){
+    var v = b[k];
+    if (v <= 0.5) return;
+    var pct = Math.max(2, v / b.total * 100);
+    barHTML += '<div style="width:' + pct + '%;background:' + SEG_COLORS[k] + '"></div>';
+    legHTML += '<div class="row"><span><span class="sw" style="background:' + SEG_COLORS[k] + '"></span>' +
+      SEG_LABELS[k] + '</span><b>' + money(v) + '/mo</b></div>';
+  });
+  $("anatomyBar").innerHTML = barHTML || '<div style="width:100%;background:var(--chart)"></div>';
+  $("anatomyLegend").innerHTML = legHTML || '<span class="empty">Set a budget to see the anatomy.</span>';
+
+  renderChart(s);
+  renderBearings(s, price);
+}
+
+function renderChart(s){
+  var rates = [], budgets = [], i, r, bd;
+  for (i = -2; i <= 2; i++){
+    r = Math.round((s.rate + i * 0.5) * 100) / 100;
+    if (r >= 0.5 && rates.indexOf(r) === -1) rates.push(r);
+  }
+  for (i = -2; i <= 2; i++){
+    bd = Math.round(s.budget * (1 + i * 0.1) / 10) * 10;
+    if (bd > 0 && budgets.indexOf(bd) === -1) budgets.push(bd);
+  }
+  var html = "<tr><th>Budget \\ Rate</th>";
+  rates.forEach(function(rt){
+    html += '<th class="' + (Math.abs(rt - s.rate) < 0.001 ? "hl" : "") + '">' + rt.toFixed(2) + "%</th>";
+  });
+  html += "</tr>";
+  budgets.forEach(function(bg){
+    var rowHL = Math.abs(bg - Math.round(s.budget / 10) * 10) < 11;
+    html += "<tr><td" + (rowHL ? ' class="hl"' : "") + "><b>" + money(bg) + "/mo</b></td>";
+    rates.forEach(function(rt){
+      var cs = Object.assign({}, s, { budget: bg, rate: rt });
+      var p = maxPrice(cs);
+      var cellHL = rowHL && Math.abs(rt - s.rate) < 0.001;
+      html += '<td class="' + (cellHL ? "hl" : "") + '">' + moneyK(p) + "</td>";
+    });
+    html += "</tr>";
+  });
+  $("chartTable").innerHTML = html;
+}
+
+function renderBearings(s, base){
+  function bearing(title, mod, note){
+    var cs = Object.assign({}, s, mod);
+    var p = maxPrice(cs);
+    return '<div class="bearing"><div class="t">' + title + '</div>' +
+      '<div class="p">' + money(p) + '</div>' +
+      '<div class="d">' + deltaHTML(p - base) + ' <span style="color:var(--faint)">' + note + '</span></div></div>';
+  }
+  var html = "";
+  html += bearing("Rate drops ½ point", { rate: Math.max(0, s.rate - 0.5) }, "vs your course");
+  html += bearing("Rate rises ½ point", { rate: s.rate + 0.5 }, "vs your course");
+  html += bearing("+$100 / month of budget", { budget: s.budget + 100 }, "vs your course");
+  if (s.down < 20){
+    html += bearing("20% down — PMI gone", { down: 20 }, "vs your course");
+  } else {
+    html += bearing("5% more down", { down: Math.min(60, s.down + 5) }, "vs your course");
+  }
+  $("bearings").innerHTML = html;
+}
+
+// ---- Ship's log (localStorage) ----
+function loadSaved(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch (e) { return []; }
+}
+function storeSaved(list){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function renderSaved(){
+  var list = loadSaved();
+  if (!list.length){
+    $("savedList").innerHTML = '<p class="empty">No courses logged yet. Set a course you like and save it.</p>';
+    return;
+  }
+  $("savedList").innerHTML = list.map(function(it, i){
+    return '<div class="saved"><div><div class="nm">' + it.name + '</div>' +
+      '<div class="dt">' + it.detail + '</div></div>' +
+      '<div><button class="ghost small" data-load="' + i + '">Load</button> ' +
+      '<button class="ghost small" data-del="' + i + '">Delete</button></div></div>';
+  }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-load]"), function(btn){
+    btn.addEventListener("click", function(){
+      var it = loadSaved()[parseInt(btn.getAttribute("data-load"), 10)];
+      if (!it) return;
+      var v = it.values;
+      $("budget").value = v.budget; $("income").value = v.income; $("rate").value = v.rate;
+      $("term").value = String(v.term); $("down").value = v.down; $("taxpct").value = v.taxpct;
+      $("ins").value = v.ins; $("hoa").value = v.hoa; $("pmi").value = v.pmi;
+      render(); toast("Course loaded");
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-del]"), function(btn){
+    btn.addEventListener("click", function(){
+      var list2 = loadSaved();
+      list2.splice(parseInt(btn.getAttribute("data-del"), 10), 1);
+      storeSaved(list2); renderSaved();
+    });
+  });
+}
+$("saveBtn").addEventListener("click", function(){
+  var s = settings();
+  var price = maxPrice(s);
+  var list = loadSaved();
+  var name = money(s.budget) + "/mo → " + money(price);
+  var detail = s.rate.toFixed(2) + "% · " + s.term + "yr · " + s.down + "% down · tax " + s.taxpct + "%";
+  list.unshift({ name: name, detail: detail, values: s });
+  storeSaved(list.slice(0, 12));
+  renderSaved(); toast("Course saved to the log");
+});
+$("copyBtn").addEventListener("click", function(){
+  var s = settings();
+  var price = maxPrice(s);
+  var b = breakdown(price, s);
+  var lines = [
+    "THE PAYMENT COMPASS — course summary",
+    "Monthly budget (all-in): " + money(s.budget),
+    "Maximum price that payment buys: " + money(price),
+    "Loan: " + money(b.loan) + " at " + s.rate.toFixed(2) + "% / " + s.term + "yr · Down: " + money(price - b.loan) + " (" + s.down + "%)",
+    "Payment anatomy: P&I " + money(b.pi) + " · Tax " + money(b.tax) + " · Insurance " + money(b.ins) +
+      (b.hoa > 0 ? " · HOA " + money(b.hoa) : "") + (b.pmi > 0 ? " · PMI " + money(b.pmi) : " · No PMI"),
+    "Est. cash to close (down + ~2.5% costs): " + money((price - b.loan) + price * 0.025)
+  ];
+  var text = lines.join("\n");
+  function done(){ toast("Summary copied"); }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+  } else { fallback(); }
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+});
+
+var toastTimer = null;
+function toast(msg){
+  var t = $("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove("on"); }, 2200);
+}
+
+["budget","income","rate","term","down","taxpct","ins","hoa","pmi"].forEach(function(id){
+  $(id).addEventListener("input", render);
+  $(id).addEventListener("change", render);
+});
+render();
+renderSaved();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
